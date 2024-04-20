@@ -50,8 +50,8 @@ public class ClientHandler extends Thread {
 
     public ClientHandler(Socket client, int port) {
         super();
-        this.controlSocket = client;
-        this.dataPort = dataPort;
+        this.controlSocket = client; //aqui tem a porta de onde o cliente está
+        this.dataPort = port;
         this.currDirectory = System.getProperty("user.dir") + "/files";
         this.root = System.getProperty("user.dir");
     }
@@ -96,7 +96,12 @@ public class ClientHandler extends Thread {
      *
      * @param c the raw input from the socket consisting of command and arguments
      */
+
     private void executeCommand(String c) {
+
+        if (c == null)
+            return;
+
         // split command and arguments
         int index = c.indexOf(' ');
         String command = ((index == -1) ? c.toUpperCase() : (c.substring(0, index)).toUpperCase());
@@ -243,11 +248,18 @@ public class ClientHandler extends Thread {
      */
     private void openDataConnectionActive(String ipAddress, int port) {
         try {
+
+            if(port == controlSocket.getPort()) {
+                dataConnection = controlSocket;
+                dataOutWriter = new PrintWriter(dataConnection.getOutputStream(), true);
+                return;
+            }
+
             dataConnection = new Socket(ipAddress, port);
             dataOutWriter = new PrintWriter(dataConnection.getOutputStream(), true);
             debugOutput("Data connection - Active Mode - established");
         } catch (IOException e) {
-            debugOutput("Could not connect to client data socket");
+            debugOutput("Could not connect to client data socket: "+e.getMessage());
             e.printStackTrace();
         }
 
