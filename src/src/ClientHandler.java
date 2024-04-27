@@ -52,8 +52,9 @@ public class ClientHandler extends Thread {
         super();
         this.controlSocket = client; //aqui tem a porta de onde o cliente está
         this.dataPort = port;
-        this.currDirectory = System.getProperty("user.dir") + "/files";
-        this.root = System.getProperty("user.dir");
+        this.currDirectory = "./files";
+//        this.root = System.getProperty("user.dir");
+        this.root = "./files";
     }
 
     public void run() {
@@ -66,7 +67,7 @@ public class ClientHandler extends Thread {
             controlOutWriter = new PrintWriter(controlSocket.getOutputStream(), true);
 
             // Greeting
-            sendMsgToClient("220 Welcome to the FTP Server");
+//            sendMsgToClient("220 Welcome to the FTP Server");
 
             // Get new command from client
             while (!quitCommandLoop) {
@@ -124,7 +125,7 @@ public class ClientHandler extends Thread {
                 break;
 
             case "LIST":
-                handleNlst(args);
+                handleNlist(args);
                 break;
 
             case "NLST":
@@ -284,6 +285,7 @@ public class ClientHandler extends Thread {
         dataOutWriter = null;
         dataConnection = null;
         dataSocket = null;
+        quitCommandLoop = true;
     }
 
     /**
@@ -353,7 +355,8 @@ public class ClientHandler extends Thread {
 
         if (f.exists() && f.isDirectory() && (filename.length() >= root.length())) {
             currDirectory = filename;
-            sendMsgToClient("250 The current directory has been changed to " + currDirectory);
+            System.out.println("Directory changed to "+currDirectory);
+            sendMsgToClient("250 " + currDirectory);
         } else {
             sendMsgToClient("550 Requested action not taken. File unavailable.");
         }
@@ -365,24 +368,49 @@ public class ClientHandler extends Thread {
      *
      * @param args The directory to be listed
      */
+
+
+    private void handleNlist(String args) {
+        File folder = new File(currDirectory);
+        File[] files = folder.listFiles();
+        String filesStr = "";
+        StringBuilder filesStringBuilder = new StringBuilder(filesStr);
+
+        sendMsgToClient("125 Opening ASCII mode data connection for file list.");
+
+        for (int x = 0; x < files.length; x++) {
+            if (files[x].isFile()){
+                filesStringBuilder.append(files[x].getName());
+
+                if(x < (files.length - 2))
+                    filesStringBuilder.append("&");
+            }
+        }
+
+        if (files.length > 0)
+            sendMsgToClient("226 "+filesStringBuilder.toString());
+        else
+            sendMsgToClient("500 não há arquivos no servidor");
+    }
+
     private void handleNlst(String args) {
         if (dataConnection == null || dataConnection.isClosed()) {
             sendMsgToClient("425 No data connection was established");
         } else {
 
-            String[] dirContent = nlstHelper(args);
+                String[] dirContent = nlstHelper(args);
 
-            if (dirContent == null) {
-                sendMsgToClient("550 File does not exist.");
-            } else {
-                sendMsgToClient("125 Opening ASCII mode data connection for file list.");
+                if (dirContent == null) {
+                    sendMsgToClient("550 File does not exist.");
+                } else {
+                    sendMsgToClient("125 Opening ASCII mode data connection for file list.");
 
-                for (int i = 0; i < dirContent.length; i++) {
-                    sendDataMsgToClient(dirContent[i]);
-                }
+                    for (int i = 0; i < dirContent.length; i++) {
+                        sendDataMsgToClient(dirContent[i]);
+                    }
 
-                sendMsgToClient("226 Transfer complete.");
-                closeDataConnection();
+                    sendMsgToClient("226 Transfer complete.");
+                    closeDataConnection();
 
             }
 
@@ -475,8 +503,26 @@ public class ClientHandler extends Thread {
      * Handler for PWD (Print working directory) command. Returns the path of the
      * current directory back to the client.
      */
+
+    //ajustar aqui para devolver o dir atual e seus subdir
     private void handlePwd() {
-        sendMsgToClient("257 \"" + currDirectory + "\"");
+
+//        File temp_file = new File(currDirectory);
+//        String[] sub_dir = temp_file.list();
+//        String rootDir = currDirectory.split("/")[1];
+//        StringBuilder argsBuilder = new StringBuilder(currDirectory);
+//
+//        if (sub_dir == null) {
+//            sendMsgToClient("257 \"" + currDirectory + "\"");
+//            return;
+//        }
+//        for (String sub : sub_dir) {
+//            if(!sub.contains(".txt"))
+//                argsBuilder.append(",").append(sub);
+//        }
+
+        System.out.println("Current directory "+currDirectory);
+        sendMsgToClient("257 " + currDirectory);
     }
 
     /**
@@ -625,7 +671,7 @@ public class ClientHandler extends Thread {
                 BufferedOutputStream fout = null;
                 BufferedInputStream fin = null;
 
-                sendMsgToClient("150 Opening binary mode data connection for requested file " + f.getName());
+                sendMsgToClient("150 " + f.getName());
 
                 try {
                     // create streams
@@ -667,6 +713,7 @@ public class ClientHandler extends Thread {
             // ASCII mode
             else {
                 sendMsgToClient("150 Opening ASCII mode data connection for requested file " + f.getName());
+                System.out.println("150 Opening ASCII mode data connection for requested file " + f.getName());
 
                 BufferedReader rin = null;
                 PrintWriter rout = null;
@@ -769,6 +816,7 @@ public class ClientHandler extends Thread {
 
                 // ASCII mode
                 else {
+                    System.out.println("iniciando copia de arquivo");
                     sendMsgToClient("150 Opening ASCII mode data connection for requested file " + f.getName());
 
                     BufferedReader rin = null;
@@ -800,11 +848,12 @@ public class ClientHandler extends Thread {
                         debugOutput("Could not close file streams");
                         e.printStackTrace();
                     }
+
+                    System.out.println("finalizando copia de arquivo");
                     sendMsgToClient("226 File transfer successful. Closing data connection.");
                 }
 
             }
-            closeDataConnection();
         }
 
     }
