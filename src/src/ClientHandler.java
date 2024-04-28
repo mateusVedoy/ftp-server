@@ -4,21 +4,10 @@ import java.net.Socket;
 
 public class ClientHandler extends Thread {
 
-    /**
-     * Enable debugging output to console
-     */
     private boolean debugMode = true;
-
-    /**
-     * Indicating the last set transfer type
-     */
     private enum transferType {
         ASCII, BINARY
     }
-
-    /**
-     * Indicates the authentification status of a user
-     */
     private enum userStatus {
         NOTLOGGEDIN, ENTEREDUSERNAME, LOGGEDIN
     }
@@ -50,7 +39,7 @@ public class ClientHandler extends Thread {
 
     public ClientHandler(Socket client, int port) {
         super();
-        this.controlSocket = client; //aqui tem a porta de onde o cliente está
+        this.controlSocket = client;
         this.dataPort = port;
         this.currDirectory = "./files";
 //        this.root = System.getProperty("user.dir");
@@ -67,7 +56,7 @@ public class ClientHandler extends Thread {
             controlOutWriter = new PrintWriter(controlSocket.getOutputStream(), true);
 
             // Greeting
-//            sendMsgToClient("220 Welcome to the FTP Server");
+            sendMsgToClient("220 Welcome to the FTP Server");
 
             // Get new command from client
             while (!quitCommandLoop) {
@@ -762,7 +751,14 @@ public class ClientHandler extends Thread {
         if (file == null) {
             sendMsgToClient("501 No filename given");
         } else {
-            File f = new File(currDirectory + fileSeparator + file);
+
+            String[] fileAndPath = file.split(" ");
+
+            if(fileAndPath.length > 1 && !fileAndPath[1].equals("")) {
+                currDirectory += fileSeparator + fileAndPath[1];
+            }
+
+            File f = new File(currDirectory + fileSeparator + fileAndPath[0]);
 
             if (f.exists()) {
                 sendMsgToClient("550 File already exists");
