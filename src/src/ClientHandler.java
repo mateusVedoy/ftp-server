@@ -647,7 +647,14 @@ public class ClientHandler extends Thread {
      * @param file The file to transfer to the user
      */
     private void handleRetr(String file) {
-        File f = new File(currDirectory + fileSeparator + file);
+
+        String[] fileAndPath = file.split(" ");
+
+        if(fileAndPath.length > 1 && !fileAndPath[1].equals("")) {
+            currDirectory += fileSeparator + fileAndPath[1];
+        }
+
+        File f = new File(currDirectory + fileSeparator + fileAndPath[0]);
 
         if (!f.exists()) {
             sendMsgToClient("550 File does not exist");
