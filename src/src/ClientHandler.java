@@ -360,6 +360,13 @@ public class ClientHandler extends Thread {
 
 
     private void handleNlist(String args) {
+
+        String[] fileAndPath = args.split(" ");
+
+        if(fileAndPath.length >= 1 && !fileAndPath[0].equals("")) {
+            currDirectory += fileSeparator + fileAndPath[0];
+        }
+
         File folder = new File(currDirectory);
         File[] files = folder.listFiles();
         String filesStr = "";
@@ -371,7 +378,7 @@ public class ClientHandler extends Thread {
             if (files[x].isFile()){
                 filesStringBuilder.append(files[x].getName());
 
-                if(x < (files.length - 2))
+                if(x < (files.length - 1))
                     filesStringBuilder.append("&");
             }
         }
