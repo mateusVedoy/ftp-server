@@ -56,7 +56,7 @@ public class ClientHandler extends Thread {
             controlOutWriter = new PrintWriter(controlSocket.getOutputStream(), true);
 
             // Greeting
-            sendMsgToClient("220 Welcome to the FTP Server");
+            sendMsgToClient("220 Boas vindas ao Servidor FTP IFRS");
 
             // Get new command from client
             while (!quitCommandLoop) {
@@ -71,10 +71,10 @@ public class ClientHandler extends Thread {
                 controlIn.close();
                 controlOutWriter.close();
                 controlSocket.close();
-                debugOutput("Sockets closed and worker stopped");
+                debugOutput("Sockets encerrados e trabalho parado");
             } catch (IOException e) {
                 e.printStackTrace();
-                debugOutput("Could not close sockets");
+                debugOutput("Não foi possível fechar sockets abertos");
             }
         }
 
@@ -177,7 +177,7 @@ public class ClientHandler extends Thread {
                 break;
 
             default:
-                sendMsgToClient("501 Unknown command");
+                sendMsgToClient("501 Comando desconhecido");
                 break;
 
         }
@@ -201,8 +201,8 @@ public class ClientHandler extends Thread {
      */
     private void sendDataMsgToClient(String msg) {
         if (dataConnection == null || dataConnection.isClosed()) {
-            sendMsgToClient("425 No data connection was established");
-            debugOutput("Cannot send message, because no data connection is established");
+            sendMsgToClient("425 Conexão de dados não estabelecida");
+            debugOutput("Não é possível notificar pois não há conexão de dados");
         } else {
             dataOutWriter.print(msg + '\r' + '\n');
         }
@@ -221,10 +221,10 @@ public class ClientHandler extends Thread {
             dataSocket = new ServerSocket(port);
             dataConnection = dataSocket.accept();
             dataOutWriter = new PrintWriter(dataConnection.getOutputStream(), true);
-            debugOutput("Data connection - Passive Mode - established");
+            debugOutput("Conexão de dados - Modo Passivo - estabelecido");
 
         } catch (IOException e) {
-            debugOutput("Could not create data connection.");
+            debugOutput("Não foi possível criar conexão de dados.");
             e.printStackTrace();
         }
 
@@ -391,21 +391,21 @@ public class ClientHandler extends Thread {
 
     private void handleNlst(String args) {
         if (dataConnection == null || dataConnection.isClosed()) {
-            sendMsgToClient("425 No data connection was established");
+            sendMsgToClient("425 Sem conexão estabelecida");
         } else {
 
                 String[] dirContent = nlstHelper(args);
 
                 if (dirContent == null) {
-                    sendMsgToClient("550 File does not exist.");
+                    sendMsgToClient("550 Arquivo não existe");
                 } else {
-                    sendMsgToClient("125 Opening ASCII mode data connection for file list.");
+                    sendMsgToClient("125 Abrindo modo ASCII para conexão e transmissão de arquivos.");
 
                     for (int i = 0; i < dirContent.length; i++) {
                         sendDataMsgToClient(dirContent[i]);
                     }
 
-                    sendMsgToClient("226 Transfer complete.");
+                    sendMsgToClient("226 Transferência completa.");
                     closeDataConnection();
 
             }
@@ -416,7 +416,7 @@ public class ClientHandler extends Thread {
 
     /**
      * A helper for the NLST command. The directory name is obtained by appending
-     * "args" to the current directory
+     * "args" to the Diretório atual: 
      *
      * @param args The directory to list
      * @return an array containing names of files in a directory. If the given name
@@ -424,14 +424,11 @@ public class ClientHandler extends Thread {
      *         (this name). If the file or directory does not exist, return nul.
      */
     private String[] nlstHelper(String args) {
-        // Construct the name of the directory to list.
         String filename = currDirectory;
         if (args != null) {
             filename = filename + fileSeparator + args;
         }
 
-        // Now get a File object, and see if the name we got exists and is a
-        // directory.
         File f = new File(filename);
 
         if (f.exists() && f.isDirectory()) {
@@ -455,15 +452,14 @@ public class ClientHandler extends Thread {
      *             seg2)
      */
     private void handlePort(String args) {
-        // Extract IP address and port number from arguments
+
         String[] stringSplit = args.split(",");
         String hostName = stringSplit[0] + "." + stringSplit[1] + "." + stringSplit[2] + "." + stringSplit[3];
 
         int p = Integer.parseInt(stringSplit[4]) * 256 + Integer.parseInt(stringSplit[5]);
 
-        // Initiate data connection to client
         openDataConnectionActive(hostName, p);
-        sendMsgToClient("200 Command OK");
+        sendMsgToClient("200 OK");
     }
 
     /**
@@ -484,40 +480,17 @@ public class ClientHandler extends Thread {
         String ipAddress = splitArgs[2];
 
         if (!IPV4.equals(ipVersion) || !IPV6.equals(ipVersion)) {
-            throw new IllegalArgumentException("Unsupported IP version");
+            throw new IllegalArgumentException("Versão IP não suportada");
         }
-
-        int port = Integer.parseInt(splitArgs[3]);
-
-        // Initiate data connection to client
-        openDataConnectionActive(ipAddress, port);
-        sendMsgToClient("200 Command OK");
-
     }
 
     /**
      * Handler for PWD (Print working directory) command. Returns the path of the
-     * current directory back to the client.
+     * Diretório atual:  back to the client.
      */
 
-    //ajustar aqui para devolver o dir atual e seus subdir
     private void handlePwd() {
-
-//        File temp_file = new File(currDirectory);
-//        String[] sub_dir = temp_file.list();
-//        String rootDir = currDirectory.split("/")[1];
-//        StringBuilder argsBuilder = new StringBuilder(currDirectory);
-//
-//        if (sub_dir == null) {
-//            sendMsgToClient("257 \"" + currDirectory + "\"");
-//            return;
-//        }
-//        for (String sub : sub_dir) {
-//            if(!sub.contains(".txt"))
-//                argsBuilder.append(",").append(sub);
-//        }
-
-        System.out.println("Current directory "+currDirectory);
+        System.out.println("Diretório atual:  "+currDirectory);
         sendMsgToClient("257 " + currDirectory);
     }
 
@@ -537,7 +510,7 @@ public class ClientHandler extends Thread {
         int p1 = dataPort / 256;
         int p2 = dataPort % 256;
 
-        sendMsgToClient("227 Entering Passive Mode (" + myIpSplit[0] + "," + myIpSplit[1] + "," + myIpSplit[2] + ","
+        sendMsgToClient("227 Entrando em modo passivo (" + myIpSplit[0] + "," + myIpSplit[1] + "," + myIpSplit[2] + ","
                 + myIpSplit[3] + "," + p1 + "," + p2 + ")");
 
         openDataConnectionPassive(dataPort);
@@ -550,7 +523,7 @@ public class ClientHandler extends Thread {
      * here).
      */
     private void handleEpsv() {
-        sendMsgToClient("229 Entering Extended Passive Mode (|||" + dataPort + "|)");
+        sendMsgToClient("229 Entrando em modo passivo extendido (|||" + dataPort + "|)");
         openDataConnectionPassive(dataPort);
     }
 
@@ -558,12 +531,12 @@ public class ClientHandler extends Thread {
      * Handler for the QUIT command.
      */
     private void handleQuit() {
-        sendMsgToClient("221 Closing connection");
+        sendMsgToClient("221 Fechando conexão");
         quitCommandLoop = true;
     }
 
     private void handleSyst() {
-        sendMsgToClient("215 COMP4621 FTP Server Homebrew");
+        sendMsgToClient("215 IFRS SERVIDOR FTP");
     }
 
     /**
@@ -573,8 +546,8 @@ public class ClientHandler extends Thread {
      * included.
      */
     private void handleFeat() {
-        sendMsgToClient("211-Extensions supported:");
-        sendMsgToClient("211 END");
+        sendMsgToClient("211-Extensões suportadas:");
+        sendMsgToClient("211 Fim");
     }
 
     /**
@@ -589,13 +562,13 @@ public class ClientHandler extends Thread {
             File dir = new File(currDirectory + fileSeparator + args);
 
             if (!dir.mkdir()) {
-                sendMsgToClient("550 Failed to create new directory");
-                debugOutput("Failed to create new directory");
+                sendMsgToClient("550 Falha ao criar novo diretório");
+                debugOutput("Falha ao criar novo diretório");
             } else {
-                sendMsgToClient("250 Directory successfully created");
+                sendMsgToClient("250 Diretório criado com sucesso");
             }
         } else {
-            sendMsgToClient("550 Invalid name");
+            sendMsgToClient("550 nome inválido");
         }
 
     }
@@ -618,12 +591,12 @@ public class ClientHandler extends Thread {
             if (d.exists() && d.isDirectory()) {
                 d.delete();
 
-                sendMsgToClient("250 Directory was successfully removed");
+                sendMsgToClient("250 Diretório removido com sucesso");
             } else {
-                sendMsgToClient("550 Requested action not taken. File unavailable.");
+                sendMsgToClient("550 Ação não realizada. Arquivo inexistente.");
             }
         } else {
-            sendMsgToClient("550 Invalid file name.");
+            sendMsgToClient("550 Nome inválido de arquivo.");
         }
 
     }
@@ -642,7 +615,7 @@ public class ClientHandler extends Thread {
             transferMode = transferType.BINARY;
             sendMsgToClient("200 OK");
         } else
-            sendMsgToClient("504 Not OK");
+            sendMsgToClient("504 NOK");
         ;
 
     }
@@ -664,7 +637,7 @@ public class ClientHandler extends Thread {
         File f = new File(currDirectory + fileSeparator + fileAndPath[0]);
 
         if (!f.exists()) {
-            sendMsgToClient("550 File does not exist");
+            sendMsgToClient("550 Arquivo não existe");
         }
 
         else {
@@ -681,10 +654,10 @@ public class ClientHandler extends Thread {
                     fout = new BufferedOutputStream(dataConnection.getOutputStream());
                     fin = new BufferedInputStream(new FileInputStream(f));
                 } catch (Exception e) {
-                    debugOutput("Could not create file streams");
+                    debugOutput("Não foi possível criar stream de arquivos");
                 }
 
-                debugOutput("Starting file transmission of " + f.getName());
+                debugOutput("Iniciando transmissão do arquivo " + f.getName());
 
                 // write file with buffer
                 byte[] buf = new byte[1024];
@@ -694,7 +667,7 @@ public class ClientHandler extends Thread {
                         fout.write(buf, 0, l);
                     }
                 } catch (IOException e) {
-                    debugOutput("Could not read from or write to file streams");
+                    debugOutput("Não foi possível ler ou escrever no stream de arquivo");
                     e.printStackTrace();
                 }
 
@@ -703,20 +676,20 @@ public class ClientHandler extends Thread {
                     fin.close();
                     fout.close();
                 } catch (IOException e) {
-                    debugOutput("Could not close file streams");
+                    debugOutput("Não foi possível fechar o stream de arquivo");
                     e.printStackTrace();
                 }
 
-                debugOutput("Completed file transmission of " + f.getName());
+                debugOutput("Transmissão de arquivo completa " + f.getName());
 
-                sendMsgToClient("226 File transfer successful. Closing data connection.");
+                sendMsgToClient("226 Transferência de arquivo realizada com sucesso. Fechando conexão de dados.");
 
             }
 
             // ASCII mode
             else {
-                sendMsgToClient("150 Opening ASCII mode data connection for requested file " + f.getName());
-                System.out.println("150 Opening ASCII mode data connection for requested file " + f.getName());
+                sendMsgToClient("150 Abrindo modo ASCII de conexao de dados para arquivo requisitado " + f.getName());
+                System.out.println("150 Abrindo modo ASCII de conexao de dados para arquivo requisitado " + f.getName());
 
                 BufferedReader rin = null;
                 PrintWriter rout = null;
@@ -726,7 +699,7 @@ public class ClientHandler extends Thread {
                     rout = new PrintWriter(dataConnection.getOutputStream(), true);
 
                 } catch (IOException e) {
-                    debugOutput("Could not create file streams");
+                    debugOutput("Não foi possível criar stream de arquivos");
                 }
 
                 String s;
@@ -736,7 +709,7 @@ public class ClientHandler extends Thread {
                         rout.println(s);
                     }
                 } catch (IOException e) {
-                    debugOutput("Could not read from or write to file streams");
+                    debugOutput("Não foi possível ler ou escrever no stream de arquivo");
                     e.printStackTrace();
                 }
 
@@ -744,10 +717,10 @@ public class ClientHandler extends Thread {
                     rout.close();
                     rin.close();
                 } catch (IOException e) {
-                    debugOutput("Could not close file streams");
+                    debugOutput("Não foi possível fechar o stream de arquivo");
                     e.printStackTrace();
                 }
-                sendMsgToClient("226 File transfer successful. Closing data connection.");
+                sendMsgToClient("226 Transferência de arquivo realizada com sucesso. Fechando conexão de dados.");
             }
 
         }
@@ -763,7 +736,7 @@ public class ClientHandler extends Thread {
      */
     private void handleStor(String file) {
         if (file == null) {
-            sendMsgToClient("501 No filename given");
+            sendMsgToClient("501 Sem nome de arquivo informado");
         } else {
 
             String[] fileAndPath = file.split(" ");
@@ -775,7 +748,7 @@ public class ClientHandler extends Thread {
             File f = new File(currDirectory + fileSeparator + fileAndPath[0]);
 
             if (f.exists()) {
-                sendMsgToClient("550 File already exists");
+                sendMsgToClient("550 Arquivo já existe");
             }
 
             else {
@@ -785,17 +758,17 @@ public class ClientHandler extends Thread {
                     BufferedOutputStream fout = null;
                     BufferedInputStream fin = null;
 
-                    sendMsgToClient("150 Opening binary mode data connection for requested file " + f.getName());
+                    sendMsgToClient("150 Abrindo modo binário para conexão e transimissão de aquivo requisitado " + f.getName());
 
                     try {
                         // create streams
                         fout = new BufferedOutputStream(new FileOutputStream(f));
                         fin = new BufferedInputStream(dataConnection.getInputStream());
                     } catch (Exception e) {
-                        debugOutput("Could not create file streams");
+                        debugOutput("Não foi possível criar stream de arquivos");
                     }
 
-                    debugOutput("Start receiving file " + f.getName());
+                    debugOutput("Recepção de arquivo iniciada " + f.getName());
 
                     // write file with buffer
                     byte[] buf = new byte[1024];
@@ -805,7 +778,7 @@ public class ClientHandler extends Thread {
                             fout.write(buf, 0, l);
                         }
                     } catch (IOException e) {
-                        debugOutput("Could not read from or write to file streams");
+                        debugOutput("Não foi possível ler ou escrever no stream de arquivo");
                         e.printStackTrace();
                     }
 
@@ -814,20 +787,20 @@ public class ClientHandler extends Thread {
                         fin.close();
                         fout.close();
                     } catch (IOException e) {
-                        debugOutput("Could not close file streams");
+                        debugOutput("Não foi possível fechar o stream de arquivo");
                         e.printStackTrace();
                     }
 
                     debugOutput("Completed receiving file " + f.getName());
 
-                    sendMsgToClient("226 File transfer successful. Closing data connection.");
+                    sendMsgToClient("226 Transferência de arquivo realizada com sucesso. Fechando conexão de dados.");
 
                 }
 
                 // ASCII mode
                 else {
                     System.out.println("iniciando copia de arquivo");
-                    sendMsgToClient("150 Opening ASCII mode data connection for requested file " + f.getName());
+                    sendMsgToClient("150 Abrindo modo ASCII de conexao de dados para arquivo requisitado " + f.getName());
 
                     BufferedReader rin = null;
                     PrintWriter rout = null;
@@ -837,7 +810,7 @@ public class ClientHandler extends Thread {
                         rout = new PrintWriter(new FileOutputStream(f), true);
 
                     } catch (IOException e) {
-                        debugOutput("Could not create file streams");
+                        debugOutput("Não foi possível criar stream de arquivos");
                     }
 
                     String s;
@@ -847,7 +820,7 @@ public class ClientHandler extends Thread {
                             rout.println(s);
                         }
                     } catch (IOException e) {
-                        debugOutput("Could not read from or write to file streams");
+                        debugOutput("Não foi possível ler ou escrever no stream de arquivo");
                         e.printStackTrace();
                     }
 
@@ -855,12 +828,12 @@ public class ClientHandler extends Thread {
                         rout.close();
                         rin.close();
                     } catch (IOException e) {
-                        debugOutput("Could not close file streams");
+                        debugOutput("Não foi possível fechar o stream de arquivo");
                         e.printStackTrace();
                     }
 
                     System.out.println("finalizando copia de arquivo");
-                    sendMsgToClient("226 File transfer successful. Closing data connection.");
+                    sendMsgToClient("226 Transferência de arquivo realizada com sucesso. Fechando conexão de dados.");
                 }
 
             }
