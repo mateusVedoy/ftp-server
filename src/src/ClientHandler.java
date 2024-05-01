@@ -176,12 +176,36 @@ public class ClientHandler extends Thread {
                 handleStor(args);
                 break;
 
+            case "DEL":
+                handleDel(args);
+
             default:
                 sendMsgToClient("501 Comando desconhecido");
                 break;
 
         }
 
+    }
+
+    private void handleDel(String args) {
+
+        String[] fileAndPath = args.split(" ");
+
+        if(fileAndPath.length > 1 && !fileAndPath[1].equals("")) {
+            currDirectory += fileSeparator + fileAndPath[1];
+        }
+
+        File f = new File(currDirectory + fileSeparator + fileAndPath[0]);
+
+        if(f.exists()){
+            if(f.delete())
+                sendMsgToClient("200 OK");
+            else
+                sendMsgToClient("500 Arquivo não pôde ser excluído");
+        }
+        else {
+            sendMsgToClient("550 Arquivo não encontrado");
+        }
     }
 
     /**
