@@ -1,0 +1,35 @@
+Bem-vindo ao nosso servidor FTP!
+
+Este servidor FTP foi configurado para fornecer um ambiente seguro e eficiente para gerenciar seus arquivos. Aqui estão algumas das nossas principais atribuições:
+
+1. Autenticação de Usuário (USER, PASS): Utilize os comandos USER e PASS para fazer login no servidor e acessar seus arquivos de forma segura.
+
+2. Navegação de Diretórios (CWD): Utilize o comando CWD para mudar de diretório e acessar diferentes partes do seu espaço de armazenamento.
+
+3. Listagem de Arquivos (LIST, NLST): Utilize os comandos LIST ou NLST para listar os arquivos disponíveis no diretório atual.
+
+4. Informações sobre o Diretório Atual (PWD, XPWD): Utilize os comandos PWD ou XPWD para obter informações sobre o diretório atual.
+
+5. Encerramento da Conexão (QUIT): Utilize o comando QUIT para encerrar a sessão e desconectar-se do servidor.
+
+6. Modo Passivo (PASV, EPSV): Utilize os comandos PASV ou EPSV para alternar para o modo passivo de transferência de dados.
+
+7. Sistema (SYST): Utilize o comando SYST para obter informações sobre o sistema operacional do servidor.
+
+8. Recursos Disponíveis (FEAT): Utilize o comando FEAT para obter uma lista dos recursos suportados pelo servidor.
+
+9. Porta de Dados (PORT, EPRT): Utilize os comandos PORT ou EPRT para especificar a porta de dados para a transferência de arquivos.
+
+10. Recuperação de Arquivos (RETR): Utilize o comando RETR para baixar arquivos do servidor para o seu computador.
+
+11. Criação de Diretórios (MKD, XMKD): Utilize os comandos MKD ou XMKD para criar novos diretórios no servidor.
+
+12. Remoção de Diretórios (RMD, XRMD): Utilize os comandos RMD ou XRMD para remover diretórios do servidor.
+
+13. Tipo de Transferência (TYPE): Utilize o comando TYPE para especificar o tipo de transferência de arquivo (ASCII, binário, etc.).
+
+14. Armazenamento de Arquivos (STOR): Utilize o comando STOR para enviar arquivos do seu computador para o servidor.
+
+Caso tenha alguma dúvida ou precise de assistência adicional, não hesite em entrar em contato conosco.
+
+Tenha uma ótima experiência!
