@@ -179,12 +179,44 @@ public class ClientHandler extends Thread {
             case "DEL":
                 handleDel(args);
 
+            case "DIR":
+                handleDir(args);
+                break;
+
             default:
                 sendMsgToClient("501 Comando desconhecido");
                 break;
 
         }
 
+    }
+
+
+    private void handleDir(String args) {
+
+        if (!args.isEmpty())
+            currDirectory += fileSeparator + args;
+
+        File dir = new File(currDirectory);
+        File[] files = dir.listFiles();
+        String filesStr = "";
+        StringBuilder filesStringBuilder = new StringBuilder(filesStr);
+
+        sendMsgToClient("125 Opening ASCII mode data connection for dir list.");
+
+        for (int x = 0; x < files.length; x++) {
+            if (files[x].isDirectory()){
+                filesStringBuilder.append(files[x].getName());
+
+                if(x < (files.length - 1))
+                    filesStringBuilder.append("&");
+            }
+        }
+
+        if (files.length > 0)
+            sendMsgToClient("226 "+filesStringBuilder.toString());
+        else
+            sendMsgToClient("500 não há arquivos no servidor");
     }
 
     private void handleDel(String args) {
